@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import OpenAI from 'openai'
+import fs from 'node:fs'
 
 /**
  * The main function for the action.
@@ -19,6 +20,11 @@ export async function run(): Promise<void> {
 
     const client = new OpenAI({
       apiKey: open_ai_key
+    })
+
+    await client.files.create({
+      file: fs.createReadStream(source),
+      purpose: 'fine-tune'
     })
 
     const response = await client.responses.create({

@@ -9,15 +9,18 @@ branding:
 
 # Define your inputs here.
 inputs:
-  milliseconds:
+  branch:
     description: Your input description here
     required: true
-    default: '1000'
-
-# Define your outputs here.
-outputs:
-  time:
-    description: Your output description here
+  source:
+    description: Your input description here
+    required: true
+  destination:
+    description: Your input description here
+    required: true
+  open_ai_key:
+    description: Your input description here
+    required: true
 
 runs:
   using: node20
