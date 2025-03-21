@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import OpenAI from 'openai'
+import OpenAI, { toFile } from 'openai'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -29,8 +29,10 @@ export async function run(): Promise<void> {
 
     console.log('filepath', filepath, fs.existsSync(filepath))
 
+    const fileContents = await toFile(fs.createReadStream(filepath))
+
     const file = await client.files.create({
-      file: fs.createReadStream(filepath),
+      file: fileContents,
       purpose: 'user_data'
     })
 

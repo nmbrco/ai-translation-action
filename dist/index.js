@@ -33213,8 +33213,9 @@ async function run() {
         });
         const filepath = path.join(basepath, source);
         console.log('filepath', filepath, fs.existsSync(filepath));
+        const fileContents = await toFile(fs.createReadStream(filepath));
         const file = await client.files.create({
-            file: fs.createReadStream(filepath),
+            file: fileContents,
             purpose: 'user_data'
         });
         console.log(file);
