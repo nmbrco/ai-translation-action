@@ -10,7 +10,7 @@ import path from 'node:path'
  */
 export async function run(): Promise<void> {
   try {
-    console.log(__dirname)
+    const basepath = '/home/runner/work/api-core/api-core'
 
     const branch: string = core.getInput('branch')
     const source: string = core.getInput('source')
@@ -26,7 +26,7 @@ export async function run(): Promise<void> {
     })
 
     const file = await client.files.create({
-      file: fs.createReadStream(path.join(__dirname, source)),
+      file: fs.createReadStream(path.join(basepath, source)),
       purpose: 'user_data'
     })
 
@@ -69,7 +69,7 @@ export async function run(): Promise<void> {
     console.log(response.output_text)
 
     fs.writeFileSync(
-      path.join(__dirname, destination, 'fr.json'),
+      path.join(basepath, destination, 'fr.json'),
       response.output_text
     )
   } catch (error) {
