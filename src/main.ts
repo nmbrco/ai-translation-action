@@ -17,6 +17,8 @@ export async function run(): Promise<void> {
     const destination: string = core.getInput('destination')
     const open_ai_key: string = core.getInput('open_ai_key')
 
+    console.log('key', open_ai_key)
+
     console.log('branch', branch)
     console.log('source', source)
     console.log('destination', destination)
