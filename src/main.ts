@@ -10,7 +10,6 @@ import path from 'node:path'
  */
 export async function run(): Promise<void> {
   try {
-    console.log(__dirname)
     const basepath = '/home/runner/work/api-core/api-core'
 
     const branch: string = core.getInput('branch')

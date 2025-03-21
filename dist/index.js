@@ -33200,7 +33200,6 @@ OpenAI.Responses = Responses;
  */
 async function run() {
     try {
-        console.log(__dirname);
         const basepath = '/home/runner/work/api-core/api-core';
         const branch = coreExports.getInput('branch');
         const source = coreExports.getInput('source');
