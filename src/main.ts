@@ -10,6 +10,8 @@ import path from 'node:path'
  */
 export async function run(): Promise<void> {
   try {
+    console.log(__dirname)
+
     const branch: string = core.getInput('branch')
     const source: string = core.getInput('source')
     const destination: string = core.getInput('destination')
@@ -24,7 +26,7 @@ export async function run(): Promise<void> {
     })
 
     const file = await client.files.create({
-      file: fs.createReadStream(source),
+      file: fs.createReadStream(path.join(__dirname, source)),
       purpose: 'user_data'
     })
 
@@ -66,7 +68,10 @@ export async function run(): Promise<void> {
 
     console.log(response.output_text)
 
-    fs.writeFileSync(path.join(destination, 'fr.json'), response.output_text)
+    fs.writeFileSync(
+      path.join(__dirname, destination, 'fr.json'),
+      response.output_text
+    )
   } catch (error) {
     console.error(error)
     // Fail the workflow run if an error occurs
