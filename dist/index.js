@@ -33222,7 +33222,7 @@ async function run() {
         const vector = await client.vectorStores.create({
             file_ids: [file.id]
         });
-        await sleep(5000);
+        await sleep(10000);
         console.log(vector);
         const prompt = `
       Follow the instructions below:

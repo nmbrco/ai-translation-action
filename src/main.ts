@@ -42,7 +42,7 @@ export async function run(): Promise<void> {
       file_ids: [file.id]
     })
 
-    await sleep(5000)
+    await sleep(10000)
 
     console.log(vector)
 
