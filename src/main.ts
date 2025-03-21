@@ -25,8 +25,12 @@ export async function run(): Promise<void> {
       apiKey: open_ai_key
     })
 
+    const filepath = path.join(basepath, source)
+
+    console.log('filepath', filepath, fs.existsSync(filepath))
+
     const file = await client.files.create({
-      file: fs.createReadStream(path.join(basepath, source)),
+      file: fs.createReadStream(filepath),
       purpose: 'user_data'
     })
 
