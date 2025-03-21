@@ -32,7 +32,7 @@ describe('main.ts', () => {
           return 'main'
           break
         case 'open_ai_key':
-          return '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'
+          return ''
           break
       }
 
