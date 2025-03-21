@@ -28,6 +28,7 @@ import require$$0$9 from 'diagnostics_channel';
 import require$$2$2 from 'child_process';
 import require$$6$1 from 'timers';
 import fs from 'node:fs';
+import path from 'node:path';
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -28863,7 +28864,7 @@ class APIClient {
             const maxRetries = options.maxRetries ?? this.maxRetries;
             timeoutMillis = this.calculateDefaultRetryTimeoutMillis(retriesRemaining, maxRetries);
         }
-        await sleep(timeoutMillis);
+        await sleep$1(timeoutMillis);
         return this.makeRequest(options, retriesRemaining - 1);
     }
     calculateDefaultRetryTimeoutMillis(retriesRemaining, maxRetries) {
@@ -29135,7 +29136,7 @@ const startsWithSchemeRegexp = /^[a-z][a-z0-9+.-]*:/i;
 const isAbsoluteURL = (url) => {
     return startsWithSchemeRegexp.test(url);
 };
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep$1 = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const validatePositiveInteger = (name, n) => {
     if (typeof n !== 'number' || !Number.isInteger(n)) {
         throw new OpenAIError(`${name} must be an integer`);
@@ -31839,7 +31840,7 @@ class Runs extends APIResource {
                             }
                         }
                     }
-                    await sleep(sleepInterval);
+                    await sleep$1(sleepInterval);
                     break;
                 //We return the run in any terminal state.
                 case 'requires_action':
@@ -32068,7 +32069,7 @@ let Files$1 = class Files extends APIResource {
         const start = Date.now();
         let file = await this.retrieve(id);
         while (!file.status || !TERMINAL_STATES.has(file.status)) {
-            await sleep(pollInterval);
+            await sleep$1(pollInterval);
             file = await this.retrieve(id);
             if (Date.now() - start > maxWait) {
                 throw new APIConnectionTimeoutError({
@@ -32833,7 +32834,7 @@ class Files extends APIResource {
                             }
                         }
                     }
-                    await sleep(sleepInterval);
+                    await sleep$1(sleepInterval);
                     break;
                 case 'failed':
                 case 'completed':
@@ -32950,7 +32951,7 @@ class FileBatches extends APIResource {
                             }
                         }
                     }
-                    await sleep(sleepInterval);
+                    await sleep$1(sleepInterval);
                     break;
                 case 'failed':
                 case 'cancelled':
@@ -33199,33 +33200,73 @@ OpenAI.Responses = Responses;
  */
 async function run() {
     try {
+        const basepath = '/home/runner/work/api-core/api-core';
         const branch = coreExports.getInput('branch');
         const source = coreExports.getInput('source');
         const destination = coreExports.getInput('destination');
         const open_ai_key = coreExports.getInput('open_ai_key');
+        console.log('key', open_ai_key);
         console.log('branch', branch);
         console.log('source', source);
         console.log('destination', destination);
         const client = new OpenAI({
             apiKey: open_ai_key
         });
-        await client.files.create({
-            file: fs.createReadStream(source),
-            purpose: 'fine-tune'
+        const filepath = path.join(basepath, source);
+        console.log('filepath', filepath, fs.existsSync(filepath));
+        const file = await client.files.create({
+            file: fs.createReadStream(filepath),
+            purpose: 'user_data'
         });
+        console.log(file);
+        const vector = await client.vectorStores.create({
+            file_ids: [file.id]
+        });
+        await sleep(5000);
+        console.log(vector);
+        const prompt = `
+      Follow the instructions below:
+      0. Translate the json contents from attached file id ${file.id}. 
+      1. Act as professional translator and translate provided JSON from english to french;
+      4. Use file context and file name to get additional information for translation process;
+      7. Parse the provided JSON into an array, translate the 'text' property of each object in the array to %targetLanguage% according to the instructions using terms, translation memory matches and file context, do not ignore html markup in the text, if some text cannot be translated then put '' string in 'text' property, serialise the resulting array into JSON, and send that JSON as a response;
+      8. Do not skip objects in JSON and do not add new objects;
+      9. Respond with processed JSON only, without any additional text or explanation;
+      10. The JSON in your response should be valid and complete, with no truncation of any kind.
+      11. Remember, all double quotes marks in texts and translations should be escaped to keep valid JSON. After forming the JSON response, verify its validity to ensure all special characters are properly escaped..
+    `;
         const response = await client.responses.create({
             model: 'gpt-4o',
-            instructions: 'You are a coding assistant that talks like a pirate',
-            input: 'Are semicolons optional in JavaScript?'
+            tools: [
+                {
+                    type: 'file_search',
+                    vector_store_ids: [vector.id]
+                }
+            ],
+            tool_choice: 'required',
+            text: { format: { type: 'json_object' } },
+            instructions: 'You are a professional language translator.',
+            input: prompt
         });
         console.log(response.output_text);
+        fs.writeFileSync(path.join(basepath, destination, 'fr.json'), response.output_text);
     }
     catch (error) {
+        console.error(error);
         // Fail the workflow run if an error occurs
         if (error instanceof Error)
             coreExports.setFailed(error.message);
     }
 }
+const sleep = async (milliseconds) => {
+    return new Promise((resolve) => {
+        console.log('Sleeping...');
+        setTimeout(() => {
+            console.log('Awake!');
+            resolve(true);
+        }, milliseconds);
+    });
+};
 
 /**
  * The entrypoint for the action. This file simply imports and runs the action's
